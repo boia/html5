@@ -1,0 +1,64 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width=900px height=600px></canvas>
+
+	<script>
+		var mycanvas = $("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+		var smallRad = 5;
+		var bigRad = 50;
+
+		//大圆圆心坐标
+		var coorX1 = 300;              
+		var coorY1 = 300;
+
+		var coorX2 = 100;
+		var coorY2 = 100;
+		var a=0;                       //角度
+		var b=20;
+
+		var stopSign = setInterval(cirMotion,3);
+
+		function cirMotion(){
+			ctx.clearRect(3,3,200,200);		
+
+			ctx.beginPath();
+
+			var sx = coorX1+bigRad*Math.sin(a*Math.PI/180);
+			var sy = coorY1+bigRad*Math.cos(a*Math.PI/180);
+			var sx1 = coorX2+bigRad*Math.sin(b*Math.PI/180);
+			var sy1 = coorY2+bigRad*Math.cos(b*Math.PI/180);
+
+			//a += Math.PI/180;                  //1度的弧度
+			a += 1;
+			b += 5;
+
+			if(a >= 360){
+				a=0;
+				//clearInterval(stopSign);
+				ctx.clearRect(3,3,894,594);
+			}
+
+			ctx.fillStyle = "blue";
+			ctx.arc(sx,sy,smallRad,0,2*Math.PI,true);
+			ctx.fill();
+			ctx.beginPath();
+			ctx.fillStyle = "red";
+			ctx.arc(sx1,sy1,smallRad+3,0,2*Math.PI,true);
+			ctx.fill();
+		}
+		
+		function $(id){
+			return document.getElementById(id);
+		}
+
+	</script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		body{background:black;}
+		#mycanvas{position:absolute;left:150px;top:30px;}
+		form{float:right;font:italic 36px Simsun,arial,sans-serif;color:white;position:absolute;right:380px;top:100px;}
+		form div{width:100px;height:130px;margin:30px;}
+		form input{background:red;width:150px;height:50px;font-size:36px;color:white;border:2px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width=500 height=600>请更换你的浏览器，谢谢！</canvas><br />
+	<form>
+		<div>level<br><input type=text id="level" value=1 /></div>
+		<div>lifes<br><input type=text id="life" value=1 /></div>
+		<div>point<br><input type=text id="point" value=0 /></div>
+	</form>
+	<script>
+		var mycanvas = $("mycanvas");
+		var mylever = $("level");
+		var mylife = $("life");
+		var mypoint = $("point");
+
+		//var point = mypoint.value;
+		
+		var str = "press the space bar to begin game";
+		var iniX = mycanvas.width/2;
+		var iniY = mycanvas.height/2;
+		var rad = 10;
+
+		var restartSign;
+
+		/*蛇是否能向前后左右运动的标志*/
+		/*var leftSign = false;
+		var upSign = true;
+		var rightSign = false;
+		var downSign = false;*/
+		var leftSign = 0;
+		var upSign = 1;
+		var rightSign = 0;
+		var downSign = 0;
+
+		/*var ballCoor = [
+			{x:iniX,y:iniY},
+			{x:iniX,y:iniY+2*rad},
+			{x:iniX,y:iniY+4*rad},
+			{x:iniX,y:iniY+6*rad},
+			{x:iniX,y:iniY+8*rad},
+			{x:iniX,y:iniY+10*rad}
+		];*/
+		var ballCoorX = [iniX,iniX,iniX,iniX,iniX];
+		var ballCoorY = [iniY,iniY+2*rad,iniY+4*rad,iniY+6*rad,iniY+8*rad];
+
+		ctx = mycanvas.getContext("2d");
+
+		//ctx.strokeRect(0,0,500,600);
+
+		initial();
+
+		
+		var snake1 = new Snake(5,"black");
+		var food1 = new Food(15,"red");
+
+		//snake1.init();
+		var foodCoor = food1.put();				//将食物坐标放在一个对象中
+		//food1.appear();
+
+		var stopSign = setInterval(crawl,500);
+
+		//setInterval(food1.put,500);
+	
+		function Snake(length,color){
+			this.length = length;
+			this.color = color;
+			this.init = draw;
+			this.grow = isEat;
+			this.move = crawl;
+		}
+
+		function draw(){
+			ctx.clearRect(0,0,500,600);
+			initial();
+			ctx.fillStyle = snake1.color;
+			snake1.length = 5;
+			ctx.beginPath();
+			for(i=0;i<snake1.length;i++){
+				ctx.arc(ballCoorX[i],ballCoorY[i],rad,0,2*Math.PI,true);
+			}
+			ctx.fill();
+		}
+
+		function isEat(){
+			queue();
+
+			var distance = (foodCoor.x - ballCoorX[0])*(foodCoor.x - ballCoorX[0])+
+							(foodCoor.y - ballCoorY[0])*(foodCoor.y - ballCoorY[0]);
+			ctx.fillStyle = food1.color;
+			ctx.fillRect(foodCoor.x-food1.size/2,foodCoor.y-food1.size/2,food1.size,food1.size);
+			if(Math.floor(Math.sqrt(distance)) < (rad+food1.size/2)){
+				
+				mypoint.value = (Number(mypoint.value))+1;
+				foodCoor = food1.put();
+				ctx.fillStyle = food1.color;
+				ctx.fillRect(foodCoor.x-food1.size/2,foodCoor.y-food1.size/2,food1.size,food1.size);
+				snake1.length++;
+				queue();
+				
+			}
+		}
+
+		function crawl(){
+			ctx.clearRect(0,0,500,600);
+			initial();
+			ctx.fillStyle = snake1.color;
+
+			/*if(leftSign || upSign || rightSign || downSign){
+				queue();			
+			}*/
+			snake1.grow();
+
+			switch(window.event.keyCode){
+				case 37:left();break;
+				case 38:up();break;	
+				case 39:right();break;
+				case 40:down();break;
+			}
+		}
+
+		function queue(){		
+			//ctx.clearRect(0,0,500,600);
+			initial();
+			
+			ctx.fillStyle = snake1.color;
+
+			/*用数组来保存圆的每一个圆心坐标，然后将前一个圆的坐标赋值给后一个圆心，并且将第一个圆心的坐标根据按的不同取值*/
+			for(i=snake1.length-1;i>0;i--){
+				ballCoorY[i] = ballCoorY[i-1];
+				ballCoorX[i] = ballCoorX[i-1];
+			}
+			leftSign && (ballCoorX[0] -= 2*rad);
+			upSign && (ballCoorY[0] -= 2*rad);
+			rightSign && (ballCoorX[0] += 2*rad);
+			downSign && (ballCoorY[0] += 2*rad);
+			
+			for(i=0;i<snake1.length;i++){
+				ctx.beginPath();
+				ctx.arc(ballCoorX[i],ballCoorY[i],rad,0,2*Math.PI,true);
+				ctx.fill();
+			}
+			
+			isTouchCheck();
+		}
+		
+		function left(){				
+			if(upSign || downSign){
+				leftSign++;
+				upSign = 0;
+				downSign = 0;
+			}
+		}
+
+		function up(){
+			if(rightSign || leftSign){
+				upSign++;
+				rightSign = 0;
+				leftSign = 0;
+			}		
+		}
+
+		function right(){
+			if(upSign || downSign){
+				rightSign++;
+				upSign = 0;
+				downSign = 0;		
+			}		
+		}
+
+		function down(){
+			if(rightSign || leftSign){
+				downSign++;
+				rightSign = 0;
+				leftSign = 0;		
+			}			
+		}
+
+		function isTouchCheck(){
+			if((ballCoorX[0]-2*rad)< 12 || (ballCoorX[0]+rad) > 486 || (ballCoorY[0]-rad)< 14 || (ballCoorY[0]+rad) > 586){
+				exit();
+			}
+			/*检测是否碰到蛇自身*/
+			for(i=4;i<snake1.length;i++){
+				var distance = (ballCoorX[i] - ballCoorX[0])*(ballCoorX[i] - ballCoorX[0])+
+								(ballCoorY[i] - ballCoorY[0])*(ballCoorY[i]- ballCoorY[0]);
+				if(distance<=(4*rad*rad)){
+					exit();
+					break;
+				}
+			}
+		}
+
+		function exit(){
+			clearInterval(stopSign);
+
+			for(i=0;i<snake1.length;i++){
+				ballCoorX[i] = iniX;
+				ballCoorY[i] = iniY+2*rad*i;						
+			}
+			if(confirm("Game Over,choose to restart the game")){
+				upSign = 1;downSign = 0;leftSign = 0;rightSign = 0;
+				stopSign = setInterval(crawl,500);
+			}
+			snake1.init();				
+		}
+
+		document.onkeyup = snake1.move;
+
+		function Food(size,color){
+			this.size = size;
+			this.color = color;
+			this.put = appear;
+		}
+	
+		function appear(){
+			ctx.clearRect(0,0,500,600);
+			//snake1.init();
+			initial();
+			var sx = Math.floor(456*Math.random())+14;
+			var sy = Math.floor(556*Math.random())+14;
+
+			return {x:(sx+food1.size/2),y:(sy+food1.size/2)};
+			//alert(11);
+		}
+		
+		function initial(){		
+			for(j=0;j<48;j++){
+				for(i=0;i<40;i++){
+					if((i+j)%2==0){
+						ctx.fillStyle = "rgb(171,172,167)";
+					}else{
+						ctx.fillStyle = "rgb(157,158,153)";
+					}
+					ctx.fillRect(i*15+12,j*30+12,15,30);
+				}
+			}
+			ctx.lineWidth = 25;
+			ctx.strokeStyle = "rgb(176,107,187)";
+			ctx.strokeRect(0,0,500,600);
+		}
+
+		function $(id){
+			return document.getElementById(id);
+		}
+	</script>
+</body>
+</html>

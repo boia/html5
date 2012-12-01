@@ -1,0 +1,208 @@
+<!doctype html5>
+<html>
+<body>
+	<canvas id="mycanvas" width=1200 height=620>请更换你的浏览器，谢谢！</canvas><br />
+	大炮的角度：<input value=20 type="number" id="cannonAngle" />
+	小球的速度: <input value=15 type="number" id="ballSpeed" />
+	<input type="button" value="修改" id="submit" />
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var submit = document.getElementById("submit");
+		var cannonAngle = document.getElementById("cannonAngle");
+		var ballSpeed = document.getElementById("ballSpeed");
+		
+		var ctx = mycanvas.getContext("2d");
+		var angle = Number(cannonAngle.value);
+		var frame = 100;                        //帧数
+		var vX;									//水平速度
+		var vY;									//垂直速度
+		
+		ctx.strokeRect(0,0,1200,620);
+		//ctx.stroke();
+		
+		var cannon1 = new Cannon(200,400,100,35,20,11);	
+		var cball = new Ball(cannon1.positionX+18+2.5*cannon1.firstRad*Math.cos(angle*Math.PI/180),
+							cannon1.positionY-cannon1.firstRad+30-2.5*cannon1.firstRad*Math.sin(angle*Math.PI/180),18);
+			
+		initial(ctx);
+		cball.draw(ctx);
+		cannon1.draw1();
+		cannon1.draw2();
+
+		submit.onclick = function drawCannon(){
+			ctx.clearRect(0,0,1197,617);
+			angle = Number(cannonAngle.value);
+			speed = Number(ballSpeed.value);
+
+			vX = speed * Math.cos(angle*Math.PI/180);
+			vY = speed * Math.sin(angle*Math.PI/180);
+			initial(ctx);
+			cannon1.draw1();
+			cannon1.draw2();	
+			
+			cball.init(cannon1.positionX+18+2.5*cannon1.firstRad*Math.cos(angle*Math.PI/180),
+				cannon1.positionY-cannon1.firstRad+30-2.5*cannon1.firstRad*Math.sin(angle*Math.PI/180));			
+		
+			stopSign = setInterval(cball.move,1000/frame);
+		};
+
+		function initial(o){
+			o.beginPath();
+			o.lineWidth = 3;
+			o.strokeStyle = "black";
+			o.moveTo(20,20);
+			o.lineTo(1100,20);
+			o.moveTo(20,20);
+			o.lineTo(20,600);
+			o.moveTo(1100,10);
+			o.lineTo(1110,20);
+			o.lineTo(1100,30);
+			o.moveTo(10,600);
+			o.lineTo(20,610);
+			o.lineTo(30,600);
+			o.stroke();
+			
+			o.fillStyle = "#478d8d";
+			o.fillRect(50,cannon1.positionY+cannon1.firstRad+10,1100,40);
+		
+			o.fillStyle = "#ff0f0f";
+			o.fillRect(1100,50,20,cannon1.positionY+cannon1.firstRad-40);
+		}
+		
+		function Ball(bx,by,rad){
+			this.bx = bx;
+			this.by = by;
+			this.rad = rad;
+			this.init = ballInit;
+			this.move = horizontalThrow;
+			this.draw = drawBall;
+		}
+
+		function ballInit(iniX,iniY){
+			cball.bx = iniX;
+			cball.by = iniY;
+		}
+
+		function horizontalThrow(){
+			//ctx.clearRect(cball.bx-cball.rad-1,cball.by-cball.rad-2,cball.rad*2+1,cball.rad*2+2);
+			ctx.clearRect(0,0,1197,617);
+			cball.bx += vX/frame;
+			cball.by -= vY/frame;
+			vY -= 10/frame;
+			initial(ctx);
+			cannon1.draw1();
+			cannon1.draw2();
+			cball.draw(ctx);
+			checkTouch();
+		}
+
+		function checkTouch(){
+			if(cball.bx+cball.rad > 1100){
+				alert("恭喜你!成功打中!");
+				clearInterval(stopSign);				
+				return;
+			}else if(cball.by+cball.rad > cannon1.positionY+cannon1.firstRad+10){
+				alert("很遗憾，掉地上了");
+				clearInterval(stopSign);
+				
+				return;
+			}else if(cball.by-cball.rad < 23){
+				alert("出界了，再来一次吧");
+				clearInterval(stopSign);				
+				return;
+			}
+		}
+
+		function drawBall(o){
+			o.beginPath();
+			o.fillStyle = "#ff870f";
+			o.arc(this.bx,this.by-1,this.rad,0,2*Math.PI,true);
+			o.fill();
+		}
+
+		
+		function Cannon(positionX,positionY,firstRad,secondRad,thirdRad,fourthRad){
+			this.positionX = positionX;
+			this.positionY = positionY;
+			this.firstRad = firstRad;
+			this.secondRad = secondRad;
+			this.thirdRad = thirdRad;
+			this.fourthRad = fourthRad;
+			this.draw1 = drawBody;
+			this.draw2 = drawWheel;
+		}
+
+		function drawBody(){
+			ctx.translate(cannon1.positionX+10,cannon1.positionY-cannon1.firstRad+10);
+			ctx.beginPath();
+			
+			ctx.rotate(-angle*Math.PI/180);
+			
+			//cball.init(2.5*cannon1.firstRad,23);
+			//cball.draw(ctx);
+			//ctx.fill();
+
+			ctx.fillStyle = "RGB(82,29,79)";
+			ctx.fillRect(0,0,2.5*cannon1.firstRad,45);
+
+			ctx.rotate(angle*Math.PI/180);
+			ctx.translate(-cannon1.positionX-10,-cannon1.positionY+cannon1.firstRad-10);
+			ctx.beginPath();
+			ctx.strokeStyle = "RGB(190,162,189)";
+			ctx.fillStyle = "RGB(190,162,189)";
+			ctx.lineWidth = 5;
+			ctx.moveTo(cannon1.positionX-cannon1.firstRad,cannon1.positionY-10);
+			ctx.lineTo(1.34*cannon1.positionX,cannon1.positionY-10);
+			ctx.lineTo(1.34*cannon1.positionX,cannon1.positionY-cannon1.firstRad*1.90);			
+			ctx.closePath();
+			ctx.stroke();
+			ctx.fill();
+			//ctx.beginPath();
+			ctx.fillStyle = "RGB(126,24,0)";
+			ctx.fillRect(cannon1.positionX-cannon1.firstRad,cannon1.positionY-10,cannon1.firstRad*2,20);
+		}
+
+		function drawWheel(){
+			(function wheel(){
+				ctx.beginPath();
+				ctx.strokeStyle = "RGB(124,65,119)";
+				ctx.lineWidth = 20;
+				ctx.arc(cannon1.positionX,cannon1.positionY,cannon1.firstRad,0,2*Math.PI,true);
+				ctx.stroke();
+				ctx.beginPath();
+				ctx.strokeStyle = "RGB(182,140,180)";
+				ctx.lineWidth = 11;
+				ctx.arc(cannon1.positionX,cannon1.positionY,cannon1.secondRad,0,2*Math.PI,true);
+				ctx.stroke();			
+				ctx.beginPath();
+				ctx.strokeStyle = "RGB(134,82,136)";
+				ctx.lineWidth = 20;
+				ctx.arc(cannon1.positionX,cannon1.positionY,cannon1.thirdRad,0,2*Math.PI,true);
+				ctx.stroke();			
+				ctx.beginPath();
+				ctx.fillStyle = "RGB(152,111,152)";
+				ctx.arc(cannon1.positionX,cannon1.positionY,cannon1.fourthRad,0,2*Math.PI,true);
+				ctx.fill();			
+				
+				ctx.translate(cannon1.positionX,cannon1.positionY);
+				for(i=0;i<10;i++){
+					ctx.beginPath();
+					ctx.strokeStyle = "#fd5b00";
+					ctx.fillStyle = "#fcff02";
+					ctx.lineWidth = 3;
+					ctx.moveTo(-5,-cannon1.firstRad+10);
+					ctx.lineTo(-5,-40);
+					ctx.moveTo(5,-cannon1.firstRad+10);
+					ctx.lineTo(5,-40);
+					ctx.fillRect(-5,-cannon1.firstRad+10,10,49);
+					ctx.stroke();
+					ctx.rotate(Math.PI/5);
+				}
+				ctx.translate(-cannon1.positionX,-cannon1.positionY);
+			}());
+		}
+		
+
+	</script>
+</body>
+</html>
