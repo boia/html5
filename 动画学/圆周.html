@@ -71,6 +71,10 @@
 			
 			this.ball.x = mycanvas.offsetWidth/2 + this.radius*Math.cos(this.ball.angle);
 			this.ball.y = mycanvas.offsetHeight/2 + this.radius*Math.sin(this.ball.angle);
+			
+			//椭圆轨迹，改变幅值
+			//this.ball.y = mycanvas.offsetHeight/2 + 1.5*this.radius*Math.sin(this.ball.angle);
+			
 			this.ball.angle += this.speed;
 
 			this.ball.init();
