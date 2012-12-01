@@ -1,0 +1,121 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+
+		
+		//一个正弦波的类
+		var Wave = function(context){
+			if(!context) context = ctx;
+			
+			this.context = context;
+
+			this.x = 0;
+			this.y = mycanvas.offsetHeight/2;
+			this.xspeed = 1;
+			this.yspeed = 0.05;
+			this.range = 50;
+			this.angle = 0;
+
+			this.init();
+		};
+	
+		Wave.prototype.init = function(){
+			this.context.moveTo(this.x,this.y);			
+		};
+
+		Wave.prototype.draw = function(){
+			this.x += this.xspeed;
+			this.angle += this.yspeed;
+
+			this.y = mycanvas.offsetHeight/2 + this.range*Math.sin(this.angle);
+			this.context.lineTo(this.x,this.y);
+			this.context.stroke();
+		};
+		
+		/*var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 30;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+			
+			//运动有关
+			this.angleX = 0;
+			this.angleY = 0;
+			
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		Ball.prototype.upDown = function(){
+			this.context.clearRect(this.x-this.radius-1,this.y-this.radius-1,2*this.radius+2,2*this.radius+2);
+			
+			//线性垂直运动
+			//this.x += 1;
+			//if(this.x+this.radius > mycanvas.offsetWidth){
+			//	this.x = mycanvas.offsetWidth/2;
+			//}
+
+			this.x = mycanvas.offsetWidth/2 + 200*Math.sin(this.angleX);
+
+			//这些变量通常用私有变量代替(作为类的私有变量)
+			//100代表幅值，mycanvas.offsetHeight/2代表起始的位置
+			this.y = mycanvas.offsetHeight/2 + 100*Math.sin(this.angleY);			
+			
+			//将正弦值应用到半径中，使它变化
+			//this.radius = 30 + 15*Math.sin(this.angle);
+
+			//0.2代表速度...使用两个角
+			this.angleY += 0.12;
+			this.angleX += 0.08;
+			
+			
+			this.init();
+		};
+
+		//var ball = new Ball();
+
+		//setInterval(function(){ball.upDown();},22);*/
+		
+		var wave = new Wave();
+		ctx.beginPath();
+		setInterval(function(){wave.draw();},22);		
+	</script>
+</body>
+</html>
