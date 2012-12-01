@@ -1,0 +1,81 @@
+1.三角学
+
+1.1.角度	
+
+	两条直线组成角
+
+1.1.1.弧度和度	
+	弧度和角度  360度 = 2pi	  rad=degrees*Math.PI/180     degrees=rad*180/Math.PI
+
+1.1.2.坐标系	
+	坐标是0,0位于左上角，向右x值增加，向下y值增加     角度按顺时针测量的，0度显示为一条沿x轴正方向伸展的线，顺时针旋转得到正的角度
+
+
+2.三角函数
+	正弦、余弦、正切、反正弦、反余弦和反正切 
+	Math.sin(angle)、Math.cos(angle)、Math.tan(angle)、Math.asin(ratio)、Math.acos(ratio)、Math.atan(ratio)和Math,atan2(y,x)
+
+3.旋转	
+	例子:箭头随着鼠标移动而旋转  https://github.com/boia/html5/blob/animation/动画学/旋转.html
+
+
+4.波
+	正弦波
+	需要记住的一件比较重要的事情就是可以将正弦值应用到除了物理位置以外的其它内容。
+	本例是改变半径，你还可以应用到alpha、rotation或其他任何有趣的属性
+	https://github.com/boia/html5/blob/animation/动画学/正弦波.html
+
+5.圆和椭圆
+
+	物体做圆形运动，y轴做正弦运动，x轴做余弦运动
+	实例  https://github.com/boia/html5/blob/animation/动画学/圆周.html
+
+	要得到一个椭圆轨迹，需要在x和y中使用不同的幅值 
+
+6.毕达哥拉斯定理
+
+	勾股定理
+
+6.1.两点之间的距离
+
+	测量两个物体之间的距离，(x1,y1)、(x2,y2)  sqrt((y2-y1)^2-(x2-x1)^2)
+	
+
+7.总结 工具
+	
+7.1.计算基本的三角函数:
+
+	角的正弦 = 对边/斜边
+	角的余弦 = 邻边/斜边
+	角的正切 = 对边/邻边
+
+7.2.转换为度和转换度为弧度	
+
+	rad=degrees*Math.PI/180
+        degrees=rad*180/Math.PI
+
+7.3.旋转到鼠标位置(或任意点)
+	(x,y)表示待旋转物体的坐标，(mouseX,mouseY)代表鼠标或者要对准物体的坐标,rotation代表物体旋转的角度
+	rotation = Math.atan2(mouseX-x,mouseY-y)*180/Math.PI;
+
+7.4.创建波
+	y = center + range*Math.sin(angle);  angle += speed;
+
+7.5.创建圆
+
+	x = center + range*Math.cos(angle); 
+	y = center + range*Math.sin(angle);
+	angle += speed;
+
+7.6.创建椭圆
+
+	x = center + range*Math.cos(angle); 
+	y = center + 1.5*range*Math.sin(angle);
+	angle += speed;
+
+7.7.获得两点之间的距离
+	
+	Math.sqrt((y2-y1)^2-(x2-x1)^2)
+
+
+三角学中有一个比较难的是余弦定理，处理非直角三角形
