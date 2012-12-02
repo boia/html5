@@ -1,0 +1,102 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+		
+		//模拟flash的lineStyle方法
+
+		var lineStyle = function(ob,width,color,alpha){
+			if(!width) width = 1.0;		//这里在flash中的默认值是0
+			if(!color) color = "#000";
+			if(!alpha) alpha = 1.0;
+			
+			ob.lineWidth = width;
+			ob.strokeStyle = color;
+			ob.globalAlpha = alpha;
+		};
+
+		lineStyle(ctx,2,"red",0.5);
+
+		//ctx.lineTo(100,100);
+		//ctx.moveTo(100,200);
+
+		/*addEvent(mycanvas,"mousemove",function(e){
+									//用鼠标在画板上画线
+									//ctx.lineTo(e.clientX,e.clientY);
+									//ctx.stroke();
+									
+									//画贝塞尔曲线
+									ctx.clearRect(0,0,900,600);
+									ctx.beginPath();
+									ctx.moveTo(100,200);
+
+									//接近控制点
+									//ctx.quadraticCurveTo(e.clientX,e.clientY,300,300);
+									//曲线穿过控制点
+									ctx.quadraticCurveTo(e.clientX*2-200,e.clientY*2-250,300,300);
+									ctx.stroke();
+								});*/
+
+		//光滑的曲线
+		var MultiCurve = function(numPoints){
+			this.numPoints = numPoints;
+			this.points = [];
+
+			this.init();
+		};
+
+		MultiCurve.prototype.init = function(){
+
+			for(var i=0;i<this.numPoints;i++){
+			
+				this.points[i] = new Object();
+				
+				this.points[i].x = 600*Math.random();
+				this.points[i].y = 300*Math.random();
+			}
+			ctx.moveTo(this.points[0].x,this.points[0].y);
+			
+			for(var i=1;i<this.numPoints-2;i++){
+				
+				var cx = this.points[i].x + this.points[i+1].x;
+				
+				var cy = this.points[i].y + this.points[i+1].y;
+				
+				ctx.quadraticCurveTo(this.points[i].x,this.points[i].y,cx,cy);
+	
+									
+			}
+			ctx.quadraticCurveTo(this.points[i].x,this.points[i].y,
+								this.points[i+1].x,this.points[i+1].y);
+			ctx.stroke();
+			
+		};
+
+		var multi = new MultiCurve(9);
+
+	</script>
+</body>
+</html>
