@@ -1,0 +1,90 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 10;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+
+			this.speed = 5;  //每帧运动0.5个像素点,这里指的就是速率
+			this.angle = 30;   //物体往30度方向运动
+
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		Ball.prototype.run = function(){
+			var that = this;		//将作用域保存在一个变量中，可以在其他作用域访问这个作用域
+
+			this.context.clearRect(this.x-this.radius-1,this.y-this.radius-1,2*this.radius+2,2*this.radius+2);
+			
+			//x轴、y轴都有速度，而且速度相同
+			//this.x += this.speed;	
+			//this.y += this.speed;
+
+			//物体往某个角度运动，速度已知
+			//this.x += this.speed*Math.cos(this.angle*Math.PI/180);
+			//this.y += this.speed*Math.sin(this.angle*Math.PI/180);
+
+			//跟随鼠标运动	
+			this.x += this.speed*Math.cos(this.angle*Math.PI/180);
+			this.y += this.speed*Math.sin(this.angle*Math.PI/180);
+			addEvent(mycanvas,"mousemove",function(e){
+										//事件发生，只要改变角度就行了,可以使用前面写过的一个Arrow类,角度转换
+										that.angle = Math.atan2(e.clientY-that.y,e.clientX-that.x)*180/Math.PI;										
+
+										//that.context.clearRect(that.x-that.radius-1,that.y-that.radius,2*that.radius+2,2*that.radius);
+										//that.x += that.speed*Math.cos(Math.atan2(e.clientY-that.y,e.clientX-that.x));
+										//that.y += that.speed*Math.sin(Math.atan2(e.clientY-that.y,e.clientX-that.x));
+										//that.init();
+									});	
+			
+			this.init();
+		};
+		
+		
+		var ball = new Ball();
+		setInterval(function(){ball.run();},33);	//33代表多少时间执行一帧，用1000除以33就可以算出1秒多少帧	
+	</script>
+</body>
+</html>
