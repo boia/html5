@@ -27,7 +27,6 @@
 		}
 		
 		//模拟flash的lineStyle方法
-
 		var lineStyle = function(ob,width,color,alpha){
 			if(!width) width = 1.0;		//这里在flash中的默认值是0
 			if(!color) color = "#000";
@@ -60,7 +59,7 @@
 									ctx.stroke();
 								});*/
 
-		//光滑的曲线
+		//光滑的多曲线
 		var MultiCurve = function(numPoints){
 			this.numPoints = numPoints;
 			this.points = [];
