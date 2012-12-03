@@ -1,0 +1,177 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+
+		var Stage = function(){
+			this.width = mycanvas.offsetWidth;
+			this.height = mycanvas.offsetHeight;
+			this.self = ctx;
+		};
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 10;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+
+			this.speed = 5;	    //每帧运动0.5个像素点,这里指的就是速率
+			this.angle = 30;    //物体往30度方向运动
+			this.friction = 0.1 //小球的摩擦力
+
+			this.stage = new Stage();
+
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		Ball.prototype.run = function(){
+			//this.context.clearRect(this.x-this.radius-1,this.y-this.radius-1,this.radius*2+2,this.radius*2+2);
+			//this.context.clearRect(0,0,this.stage.width,this.stage.height);
+			this.x += this.speed*Math.cos(this.angle*Math.PI/180);
+			this.y += this.speed*Math.sin(this.angle*Math.PI/180);
+			this.init();
+		};
+
+		//做一个移除物体的类
+		var Remove = function(){
+			this.balls = [];
+			this.ballsNum = 30;
+
+			this.stage = new Stage();
+
+			this.createBalls();
+		};
+
+		Remove.prototype.createBalls = function(){
+			for(var i=0;i<this.ballsNum;i++){
+				var radius = 40*Math.random()+5;
+
+				var x = this.stage.width/1.2*Math.random()+2*radius;
+				var y = this.stage.height/1.2*Math.random()+2*radius;
+
+				// 取得随机数，必须得处理为整数
+				var red = parseInt(Math.random()*255);
+				var green = parseInt(Math.random()*255);
+				var blue = parseInt(Math.random()*255);
+				
+				var color = "rgb("+red+","+green+","+blue+")";
+	
+				var ball = new Ball(ctx,x,y,radius,color);
+				
+				var speed = 9*Math.random()+1;
+				var angle = 360*Math.random();
+				ball.speed = speed;
+				ball.angle = angle;
+				
+				this.balls.push(ball);
+			};
+		};
+
+		Remove.prototype.move = function(){
+
+			//必须在运动之前清除
+			ctx.clearRect(0,0,900,600);
+
+			for(var i=0;i<this.balls.length;i++){
+				this.balls[i].run();
+				
+				/*if(this.balls[i].x-this.balls[i].radius > this.stage.width || this.balls[i].x+this.balls[i].radius < 0 ||
+					this.balls[i].y-this.balls[i].radius > this.stage.height || this.balls[i].y+this.balls[i].radius < 0){
+					//①这里直接移除了物体
+					//this.balls.splice(i,1);				
+					//这是必要的，因为要是使用splice方法，会将删除元素的后面元素的索引都往前推
+					//这时候可能会出出现删除元素后一个元素被漏掉的情况
+					//也可以使用for(i=this,balls,length;i>0;i--)来处理
+					//i--;
+
+					//②这里是在某一点重新生成物体
+					//this.balls[i].x = this.stage.width/2;
+					//this.balls[i].y = this.stage.height/2;
+				}*/
+
+				//③这里采用了屏幕折回的方法
+				/*if(this.balls[i].x-this.balls[i].radius > this.stage.width){
+					this.balls[i].x = -this.balls[i].radius;
+				}
+				else if(this.balls[i].x+this.balls[i].radius < 0){
+					this.balls[i].x = this.stage.width - this.balls[i].radius;
+				}
+				if(this.balls[i].y-this.balls[i].radius > this.stage.height){
+					this.balls[i].y = -this.balls[i].radius
+				}
+				else if(this.balls[i].y+this.balls[i].radius < 0){
+					this.balls[i].x = this.stage.height - this.balls[i].radius;
+				}*/
+				
+				
+				//④回弹，算法的剖析可以采用光反射的方法
+				if(this.balls[i].x+this.balls[i].radius > this.stage.width || this.balls[i].x-this.balls[i].radius < 0){
+					
+					this.balls[i].angle = 180-this.balls[i].angle;
+					//this.balls[i].speed *= 0.85;		//这样更接近现实了，但是可能会停下来
+					this.balls[i].speed -= 0.01;
+
+				}
+				if(this.balls[i].y+this.balls[i].radius > this.stage.height || this.balls[i].y-this.balls[i].radius < 0){
+					
+					this.balls[i].angle = -this.balls[i].angle;
+					this.balls[i].speed -= 0.01;
+				}
+
+				//①正确的方法使用摩擦力
+				if(this.balls[i].speed < this.balls[i].friction){
+					this.balls[i].speed = 0;
+				}
+				else{
+					this.balls[i].speed -= this.balls[i].friction;
+				}
+
+			}
+			
+		};
+
+		var manyBall = new Remove();
+
+		setInterval(function(){manyBall.move();},30);
+
+	</script>
+</body>
+</html>
