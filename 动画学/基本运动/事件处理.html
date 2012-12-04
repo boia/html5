@@ -1,0 +1,186 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{margin:0;padding:0;}
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+
+		var Stage = function(){
+			this.width = 900;
+			this.height = 600;
+			this.self = mycanvas;
+		};
+
+		Stage.prototype.addEvent = function(type,fuc){
+			addEvent(this.self,type,fuc);
+		};
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 40;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+
+			this.speed = 5;  //每帧运动0.5个像素点,这里指的就是速率
+			this.angle = 30;   //物体往30度方向运动
+
+			this.stage = new Stage();
+
+			this.isClick = false; //这是个和鼠标点击事件相关的属性
+			this.isRun = false;   //这是控制小球是否能够自行运动的标志
+			this.isDrag = false;  //这是物体是否被拖拽的标志
+
+			this.oldX;
+			this.oldY;
+			this.newX;
+			this.newY;
+
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.clearRect(0,0,900,600);
+
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		Ball.prototype.run = function(){
+			
+			//this.x += 0.5;
+			//this.y += 0.5;
+			this.x += this.speed*Math.cos(this.angle*Math.PI/180);
+			this.y += this.speed*Math.sin(this.angle*Math.PI/180);
+
+			if(this.x+this.radius > this.stage.width || this.x-this.radius < 0){
+					
+				this.angle = 180-this.angle;
+				this.speed *= 0.99;		//这样更接近现实了，但是可能会停下来
+
+			}
+			if(this.y+this.radius > this.stage.height || this.y-this.radius < 0){
+					
+				this.angle = -this.angle;
+				this.speed *= 0.99;
+			}
+
+			this.init();
+		};
+
+		//模拟了在小球上的事件
+		Ball.prototype.addEvent = function(type,fuc){			
+			var that = this;
+			var func = function(e){
+				e = event || window;
+				var x = e.clientX - that.x;
+				var y = e.clientY - that.y;
+				if(x*x+y*y > ball.radius*ball.radius) return false;
+				else{
+					fuc(e);
+				}
+			};
+			addEvent.call(this,mycanvas,type,func);
+		};
+		
+		var stage = new Stage();
+		var ball = new Ball();
+
+		//①点击事件
+		/*ball.addEvent("mousedown",function(e){
+										alert(e.clientX);
+									});*/
+		
+		//②用鼠标点击和鼠标移动模拟了拖拽事件
+		//isClick属性时判断鼠标是否松开，你也可以使用removeEventListener()函数取消事件
+		ball.addEvent("mousedown",function(e){
+										var that = this;
+										
+										ball.isClick = true;
+										
+										//点击鼠标以后 物体不在运动
+										clearInterval(ball.isRun);
+											
+										//获取鼠标点下的坐标，在松开鼠标的那一刻停止
+										//获得的(oldX,oldY)就是松开鼠标的前一刻物体坐标
+										ball.isDrag = setInterval(function(e){
+													//物体向着抛出的方向前进
+													var offsetX = ball.x-ball.oldX;
+													var offsetY = ball.y-ball.oldY;									
+													ball.angle = 180/Math.PI*Math.atan2(offsetY,offsetX);												
+													ball.speed = Math.sqrt(offsetX*offsetX+offsetY*offsetY);
+													ball.oldX = ball.x;
+													ball.oldY = ball.y;
+												},30);
+
+									});
+		ball.addEvent("mouseup",function(e){
+										var that = this;									
+
+										ball.isClick = false;
+
+										
+										clearInterval(ball.isDrag);
+										//松开鼠标，物体运动
+										ball.isRun = setInterval(function(){ball.run();},30);
+
+										//这里需要考虑的一个问题是拖拽的精灵是否出了边界
+										if(ball.x+ball.radius > ball.stage.width || ball.x-ball.radius < 0 ||
+											ball.y+ball.radius > ball.stage.height || ball.y-ball.radius < 0){
+										
+											ball.x = ball.stage.width/2;
+											ball.y = ball.stage.height/2;
+										}
+									
+									});
+
+		
+		ball.stage.addEvent("mousemove",function(e){
+										var that = this;
+
+										if(ball.isClick){
+
+											ball.x = e.clientX;
+											ball.y = e.clientY;
+											ball.init();
+										}
+
+									});
+		
+		
+		
+			
+	</script>
+</body>
+</html>
