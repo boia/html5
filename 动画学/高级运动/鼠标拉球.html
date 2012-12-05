@@ -1,0 +1,134 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{margin:0;padding:0;}
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+		
+		var Stage = function(){
+			this.width = 900;
+			this.height = 600;
+
+			this.self = mycanvas;
+		};
+
+		Stage.prototype.addEvent = function(type,fuc){
+			addEvent(this.self,type,fuc);
+		};
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 20;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+			this.stage = new Stage();
+
+			this.vx = 0;
+			this.vy = 0;
+
+			this.ax = 0;
+			this.ay = 0;
+
+			this.gravity = 25;		//重力加速度
+			this.spring = 0.20;		//弹性系数
+
+			this.mouseX = 0;		//鼠标坐标
+			this.mouseY = 0;		
+
+			this.a = 5;				//加速度
+			this.friction = 0.95;    //摩擦力
+
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		Ball.prototype.run = function(){
+			var that = this;			
+											
+			this.context.clearRect(0,0,ball.stage.width,ball.stage.height);
+	
+			this.ax = (this.mouseX-this.x)*this.spring;
+			this.ay = (this.mouseY-this.y)*this.spring;
+			this.vx += this.ax;
+			this.vy += this.ay;
+			this.vy += this.gravity;
+
+		    this.vx *= this.friction;
+			this.vy *= this.friction;
+
+
+			this.x += this.vx;
+			this.y += this.vy;
+
+			/*if(this.x+this.radius > this.stage.width || this.x-this.radius < 0 ||
+				this.y+this.radius > this.stage.height || this.y-this.radius < 0){
+					
+					this.vy = 0;
+					this.ay = 0;
+
+			}*/
+			this.context.beginPath();
+			this.context.moveTo(this.mouseX,this.mouseY);
+			this.context.lineTo(this.x,this.y);
+			this.context.stroke();
+
+			this.init();
+
+		};
+		
+		var ball = new Ball("",40,40);
+
+		//在事件中只要把鼠标的坐标值时刻地赋给(mouseX,mouseY)
+		//运动的处理最好别放在事件中
+		ball.stage.addEvent("mousemove",function(e){
+											//ball.ax = (e.clientX-ball.x)*ball.spring;
+											//ball.ay = (e.clientY-ball.y)*ball.spring;
+											ball.mouseX = e.clientX;
+											ball.mouseY = e.clientY;
+											//ball.context.beginPath();
+											//ball.context.moveTo(e.clientX,e.clientY);
+											//ball.context.lineTo(ball.x,ball.y);
+											//ball.context.stroke();
+
+										});
+		
+		var stopSign = setInterval(function(){ball.run();},33);	//33代表多少时间执行一帧，用1000除以33就可以算出1秒多少帧	
+	</script>
+</body>
+</html>

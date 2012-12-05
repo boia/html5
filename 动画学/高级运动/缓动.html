@@ -1,0 +1,109 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{margin:0;padding:0;}
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+
+		var Destination = function(){
+			this.x = 700;
+			this.y = 40;
+			this.width = 100;
+			this.height = 500;
+			this.init();
+		};
+
+		Destination.prototype.init = function(){
+			ctx.strokeRect(this.x,this.y,this.width,this.height);
+		};
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 20;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+
+			//this.speed = 5;  //每帧运动0.5个像素点,这里指的就是速率
+			//this.angle = 30;   //物体往30度方向运动
+			this.speed;
+			this.angle = 180/Math.PI*Math.atan2(1,2);
+			this.disc = 100;
+
+			this.destination = new Destination();
+
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		Ball.prototype.run = function(){
+			var that = this;		//将作用域保存在一个变量中，可以在其他作用域访问这个作用域
+			//this.context.clearRect(this.x-this.radius-1,this.y-this.radius-1,2*this.radius+2,2*this.radius+2);	
+			this.context.clearRect(0,0,900,600);
+			
+			//①简单缓存，计算出离目的地的距离
+			//var dis = (this.destination.x-this.x)/Math.cos(this.angle*Math.PI/180);
+
+			//②在像素点小于1时就可以关闭缓存了
+			if(Math.abs(this.disc) < 1){
+				mycanvas.removeEventListener("mousemove");
+				//clearInterval(stopSign);
+			}
+
+			//速度和距离成正比
+			this.speed = this.disc*0.12;
+			this.speed *= 0.6;
+			this.x += this.speed * Math.cos(this.angle*Math.PI/180);
+			this.y += this.speed * Math.sin(this.angle*Math.PI/180);
+		
+			//this.destination.init();
+			this.init();
+			
+			//③将缓动应用于鼠标
+			addEvent(mycanvas,"mousemove",function(e){
+												that.angle = 180/Math.PI*Math.atan2(e.clientY-ball.y,e.clientX-ball.x);
+												that.disc = (e.clientX-that.x)/Math.cos(that.angle*Math.PI/180);
+
+										  });
+		};
+		
+		var ball = new Ball("",40,40);
+		var stopSign = setInterval(function(){ball.run();},33);	//33代表多少时间执行一帧，用1000除以33就可以算出1秒多少帧	
+	</script>
+</body>
+</html>

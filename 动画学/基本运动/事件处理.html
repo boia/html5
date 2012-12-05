@@ -106,7 +106,7 @@
 				e = event || window;
 				var x = e.clientX - that.x;
 				var y = e.clientY - that.y;
-				if(x*x+y*y > ball.radius*ball.radius) return false;
+				if(x*x+y*y > that.radius*that.radius) return false;
 				else{
 					fuc(e);
 				}

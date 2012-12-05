@@ -1,0 +1,201 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{margin:0;padding:0;}
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="1278px" height="683px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+		
+		var Stage = function(){
+			this.self = mycanvas;
+			this.width = this.self.offsetWidth;
+			this.height = this.self.offsetHeight;
+
+			
+		};
+
+		Stage.prototype.addEvent = function(type,fuc){
+			addEvent(this.self,type,fuc);
+		};
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 20;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+			this.stage = new Stage();
+
+			this.vx = 0;			//横向速度
+			this.vy = 0;
+	
+			this.ax = 0;			//横向加速度
+			this.ay = 0;
+
+			this.gravity = 15;		//重力加速度(越大，绳子越长)
+			this.spring = 0.20;		//弹性系数
+
+			this.mouseX = 0;		//鼠标坐标
+			this.mouseY = 0;		
+
+			this.a = 5;				//加速度
+			this.friction = 0.9;   //摩擦力(摩擦力小的话，运动速度太快 可能看不出效果)
+			
+			//物体拖放
+			this.isClick = false;
+
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		//模拟了在小球上的事件
+		Ball.prototype.addEvent = function(type,fuc){			
+			var that = this;
+			var func = function(e){
+				e = event || window;
+				var x = e.clientX - that.x;
+				var y = e.clientY - that.y;
+				if(x*x+y*y > that.radius*that.radius) return false;
+				else{
+					fuc(e);
+				}
+			};
+			addEvent.call(this,mycanvas,type,func);
+		};
+
+		var Balance = function(){
+			this.fixed = [];
+			this.fixedNums = 3;			
+			this.ball;
+			this.context = ctx;
+			
+			//设置舞台
+			this.stage = new Stage();
+
+			this.init();
+		};
+
+		Balance.prototype.init = function(){
+			this.ball = new Ball("",0,0,20,"blue");
+
+			for(var i=0;i<this.fixedNums;i++){	
+				var x = this.stage.width*Math.random();
+
+				var y = this.stage.height*Math.random();
+				this.fixed[i] = new Ball("",x,y);
+				
+				/*this.fixed[i].addEvent("mousedown",function(e){								
+											that.isClick = true;
+										});	
+				this.fixed[i].addEvent("mouseup",function(e){
+											that.isClick = false;										
+										});*/
+			}
+
+			
+			
+		};
+
+		Balance.prototype.move = function(){
+			ctx.clearRect(0,0,this.stage.width,this.stage.height);
+			
+			//针对每个固定点对小球的弹性，对所有固定点的累加
+			for(var i=0;i<this.fixedNums;i++){
+				
+				//重新画出固定物体
+				this.fixed[i].init();
+
+				var ax = (this.fixed[i].x-this.ball.x)*this.ball.spring;
+				var ay = (this.fixed[i].y-this.ball.y)*this.ball.spring;
+
+				this.ball.vx += ax;
+				this.ball.vy += ay;
+
+				this.ball.vx *= this.ball.friction;
+				this.ball.vy *= this.ball.friction;
+
+				this.ball.x += this.ball.vx;
+				this.ball.y += this.ball.vy;
+
+			}
+			this.ball.init();
+			
+			//不能放在这里for循环中的语句放在上面处理
+			//因为上面没经过一个循环，小球的坐标都在改变
+			for(var i=0;i<this.fixedNums;i++){
+				this.context.beginPath();
+				this.context.moveTo(this.fixed[i].x,this.fixed[i].y);
+				this.context.lineTo(this.ball.x,this.ball.y);
+				this.context.stroke();				
+			}
+			//this.ball.init();
+		};
+
+		var balance = new Balance();
+		
+		//这里有个bug，是因为i的关系
+		for(var i=0;i<balance.fixedNums;i++){
+			var that = balance.fixed[i];
+
+			balance.fixed[i].addEvent("mousedown",function(e){								
+											that.isClick = true;
+											//sign = i;
+										});
+			balance.fixed[i].addEvent("mouseup",function(e){
+											that.isClick = false;
+											
+										});
+
+			
+			addEvent(mycanvas,"mousemove",function(e){
+										
+											if(that.isClick){
+												that.x = e.clientX;
+												that.y = e.clientY;
+												that.init();
+
+											}
+											
+
+										});
+		}
+		
+
+		var stopSign = setInterval(function(){balance.move();},33);	
+	</script>
+</body>
+</html>

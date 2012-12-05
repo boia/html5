@@ -1,0 +1,171 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{margin:0;padding:0;}
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="1278px" height="683px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+		
+		var Stage = function(){
+			this.self = mycanvas;
+			this.width = this.self.offsetWidth;
+			this.height = this.self.offsetHeight;
+
+			
+		};
+
+		Stage.prototype.addEvent = function(type,fuc){
+			addEvent(this.self,type,fuc);
+		};
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 20;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+			this.stage = new Stage();
+
+			this.vx = 0;			//横向速度
+			this.vy = 0;
+	
+			this.ax = 0;			//横向加速度
+			this.ay = 0;
+
+			this.gravity = 15;		//重力加速度(越大，绳子越长)
+			this.spring = 0.20;		//弹性系数
+
+			this.mouseX = 0;		//鼠标坐标
+			this.mouseY = 0;		
+
+			this.a = 5;				//加速度
+			this.friction = 0.8;   //摩擦力(摩擦力小的话，运动速度太快 可能看不出效果)
+		};
+
+		Ball.prototype.init = function(){
+			this.context.beginPath();
+			this.context.moveTo(this.mouseX,this.mouseY);
+			this.context.lineTo(this.x,this.y);
+			this.context.stroke();
+
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		//定义链的类
+		var Chain = function(){
+			this.context = ctx;
+
+			this.balls = [];
+			
+			this.nums = 5;
+			this.stage = new Stage();
+			this.init();
+		};
+
+		Chain.prototype.init = function(){
+			//this.context.clearRect(0,0,this.stage.width,this.stage.height);
+
+			for(var i=0;i<this.nums;i++){
+				this.balls[i] = new Ball("",(i+1)*40,(i+1)*40);
+				
+				this.balls[i].init();				
+			}
+		};
+
+		//定义链移动的方法
+		Chain.prototype.move = function(){
+			this.context.clearRect(0,0,this.stage.width,this.stage.height);
+			
+			//每次汇线前重新路径
+			//this.context.beginPath();
+			//this.context.moveTo(this.balls[0].mouseX,this.balls[0].mouseY);
+			
+
+
+			for(var i=0;i<this.nums;i++){
+				
+				if(i>0){
+					//第一个初始坐标放在鼠标中处理，之后的放在setInterval()，
+					//因为事件处理比它快
+					this.balls[i].mouseX = this.balls[i-1].x;
+					this.balls[i].mouseY = this.balls[i-1].y;				
+				}
+				
+				//这些改变物体移动加速度和速度的可以放到一个方法中处理
+				
+				//加速度和距离成正比  spring是比例系数(也就是弹簧系数k)
+				this.balls[i].ax = (this.balls[i].mouseX-this.balls[i].x)*this.balls[i].spring;
+				this.balls[i].ay = (this.balls[i].mouseY-this.balls[i].y)*this.balls[i].spring;
+				
+				this.balls[i].vx += this.balls[i].ax;
+				this.balls[i].vy += this.balls[i].ay;
+				this.balls[i].vy += this.balls[i].gravity;
+
+				this.balls[i].vx *= this.balls[i].friction;
+				this.balls[i].vy *= this.balls[i].friction;
+
+
+				this.balls[i].x += this.balls[i].vx;
+				this.balls[i].y += this.balls[i].vy;
+
+				/*this.context.beginPath();
+				this.context.moveTo(this.balls[i].mouseX,this.balls[i].mouseY);
+				this.context.lineTo(this.balls[i].x,this.balls[i].y);
+				this.context.stroke();*/
+	
+				this.balls[i].init();
+			}
+		
+		};
+		
+		var chain = new Chain();
+
+		//在事件中只要把鼠标的坐标值时刻地赋给(mouseX,mouseY)
+		//运动的处理最好别放在事件中
+		chain.stage.addEvent("mousemove",function(e){
+											chain.balls[0].mouseX = e.clientX;
+											chain.balls[0].mouseY = e.clientY;
+				
+											//chain.balls[1].mouseX = chain.balls[0].x;
+											//chain.balls[1].mouseY = chain.balls[0].y;
+
+											//chain.balls[2].mouseX = chain.balls[1].x;
+											//chain.balls[2].mouseY = chain.balls[1].y;
+
+										});
+
+		var stopSign = setInterval(function(){chain.move()},33);	
+	</script>
+</body>
+</html>

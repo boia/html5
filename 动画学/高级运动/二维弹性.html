@@ -1,0 +1,102 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{margin:0;padding:0;}
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+
+		var Destination = function(){
+			this.x = 450;
+			this.y = 40;
+			this.width = 100;
+			this.height = 500;
+			this.init();
+		};
+
+		Destination.prototype.init = function(){
+			ctx.strokeRect(this.x,this.y,this.width,this.height);
+		};
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 20;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+
+
+			this.speed = 0;;
+			this.angle = 180/Math.PI*Math.atan2(1,2);
+
+			this.a = 5;				//加速度
+			this.friction = 0.95    //摩擦力
+
+			this.destination = new Destination();
+
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		Ball.prototype.run = function(){
+			var that = this;
+			
+			this.context.clearRect(0,0,900,600);
+			
+			var dis = (this.destination.x-this.x)/Math.cos(this.angle*Math.PI/180);
+
+			//加速度和距离成正比
+			this.a = dis*0.2;
+
+			this.speed += this.a;
+
+			//加入摩擦力使小球可以停下来
+			this.speed *= this.friction;	
+			
+			this.x += this.speed * Math.cos(this.angle*Math.PI/180);
+			this.y += this.speed * Math.sin(this.angle*Math.PI/180);
+		
+			this.destination.init();
+			this.init();
+
+		};
+		
+		var ball = new Ball("",40,40);
+		var stopSign = setInterval(function(){ball.run();},33);	//33代表多少时间执行一帧，用1000除以33就可以算出1秒多少帧	
+	</script>
+</body>
+</html>
