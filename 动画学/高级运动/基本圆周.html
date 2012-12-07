@@ -1,0 +1,89 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 10;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+			
+			//运动有关
+			this.angle = 0;
+			
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+		
+		var Circle = function(radius){
+			this.radius = radius;
+			this.speed = 0.1;
+			this.ball;
+
+			this.init();
+		};
+
+		Circle.prototype.init = function(){
+			this.ball = new Ball();
+		};
+
+		Circle.prototype.run = function(){
+			
+			ctx.clearRect(this.ball.x-this.ball.radius-1,this.ball.y-this.ball.radius-1,2*this.ball.radius+2,2*this.ball.radius+2);
+			
+			this.ball.x = mycanvas.offsetWidth/2 + this.radius*Math.cos(this.ball.angle);
+			this.ball.y = mycanvas.offsetHeight/2 + this.radius*Math.sin(this.ball.angle);
+			
+			//椭圆轨迹，改变幅值
+			//this.ball.y = mycanvas.offsetHeight/2 + 1.5*this.radius*Math.sin(this.ball.angle);
+			
+			this.ball.angle += this.speed;
+
+			this.ball.init();
+		};
+		
+		var circle = new Circle(100);
+
+		setInterval(function(){circle.run();},30);
+
+	</script>
+</body>
+</html>

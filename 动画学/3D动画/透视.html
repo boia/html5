@@ -1,0 +1,105 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{
+			padding:0;
+			margin:0;
+		}
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+
+		var Stage = function(){
+			
+			this.width = mycanvas.offsetWidth;
+			this.height = mycanvas.offsetHeight;
+		};
+
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 10;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+			
+			//运动有关
+			this.angle = 0;
+			
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.clearRect(0,0,900,600);
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+		
+		var Perspective = function(){
+			this.ball = new Ball();
+			this.xpos = 0;
+			this.ypos = 0;
+			this.zpos = 0;
+			this.f1 = 250;
+			
+			this.stage = new Stage();
+
+			this.vpX = this.stage.width/2;
+			this.vpY = this.stage.height/2;
+		};
+
+		var perspective = new Perspective();
+
+		addEvent(mycanvas,"mousemove",function(e){
+										xpos = e.clientX-perspective.vpX;
+										ypos = e.clientY-perspective.vpY;
+										var scale = perspective.f1/(perspective.f1+perspective.zpos);
+										perspective.ball.x=perspective.vpX+xpos*scale;
+										perspective.ball.y=perspective.vpY+ypos*scale;
+										perspective.ball.init();
+									});
+		addEvent(window,"keydown",function(e){
+										//alert(window.event.keyCode);
+										if(e.keyCode == 38){
+											perspective.zpos += 5;
+											perspective.ball.init();
+										}
+										if(e.keyCode == 40){
+											perspective.zpos -= 5;
+											perspective.ball.init();
+										}
+									});
+
+	</script>
+</body>
+</html>
