@@ -36,3 +36,26 @@
 	
 
 实例 https://github.com/boia/html5/blob/animation/动画学/3D动画/透视.html
+
+
+基本的透视
+
+	scale = f1/(f1+zpos);
+	alpha = scale;  //可选的
+	x = xpos*scale;
+	y = ypos*scale;
+
+坐标旋转
+
+	x1 = cos(angle)*xpos-sin(angle)*ypos;
+	y1 = cos(angle)*ypos+sin(angle)*xpos;
+	
+	x1 = cos(angle)*xpos-sin(angle)*zpos;
+	z1 = cos(angle)*zpos+sin(angle)*xpos;
+
+	y1 = cos(angle)*ypos-sin(angle)*zpos;
+	z1 = cos(angle)*zpos+sin(angle)*ypos;
+
+3D距离
+
+	dist = Math.sqrt(dx*dx+dy*dy+dz*dz);

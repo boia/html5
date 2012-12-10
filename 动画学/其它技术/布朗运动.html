@@ -1,0 +1,156 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="900px" height="600px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+
+		var Stage = function(){
+			this.width = mycanvas.offsetWidth;
+			this.height = mycanvas.offsetHeight;
+			this.self = ctx;
+		};
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 10;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+
+			this.speed = 0;  //每帧运动0.5个像素点,这里指的就是速率
+			this.angle = 30;   //物体往30度方向运动
+
+			this.vx = 0;
+			this.vy = 0;
+
+			this.stage = new Stage();
+
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+
+		Ball.prototype.run = function(){
+			//this.context.clearRect(this.x-this.radius-1,this.y-this.radius-1,this.radius*2+2,this.radius*2+2);
+			//this.context.clearRect(0,0,this.stage.width,this.stage.height);
+			
+			this.context.beginPath();
+			this.context.globalAlpha = 0.5;
+			//this.context.restore();
+			this.context.moveTo(this.x,this.y);
+			
+			//产生一个-0.2到0.2的数加到原来速度中
+			this.speed += Math.random()*0.4-0.2;
+
+			this.vx = this.speed*Math.cos(this.angle*Math.PI/180);
+			this.vy = this.speed*Math.sin(this.angle*Math.PI/180);
+			
+			this.x += this.vx;
+			this.y += this.vy;
+
+			this.context.lineTo(this.x,this.y);
+			this.context.stroke();
+			//this.context.save();
+			this.init();
+		};
+
+		//做一个移除物体的类
+		var Brownian = function(){
+			this.balls = [];
+			this.ballsNum = 50;
+
+			this.stage = new Stage();
+
+			this.createBalls();
+		};
+
+		Brownian.prototype.createBalls = function(){
+			for(var i=0;i<this.ballsNum;i++){
+				var radius = 40*Math.random()+5;
+
+				var x = this.stage.width/1.2*Math.random()+2*radius;
+				var y = this.stage.height/1.2*Math.random()+2*radius;
+
+				// 取得随机数，必须得处理为整数
+				var red = parseInt(Math.random()*255);
+				var green = parseInt(Math.random()*255);
+				var blue = parseInt(Math.random()*255);
+				
+				var color = "rgb("+red+","+green+","+blue+")";
+	
+				var ball = new Ball(ctx,x,y,radius,color);
+				
+				//var speed = 4*Math.random()+1;
+				var angle = 360*Math.random();
+				//ball.speed = speed;
+				ball.angle = angle;
+				
+				this.balls.push(ball);
+			};
+		};
+
+		Brownian.prototype.move = function(){
+
+			//必须在运动之前清除
+			ctx.clearRect(0,0,this.stage.width,this.stage.height);
+
+			for(var i=0;i<this.balls.length;i++){
+				this.balls[i].run();
+
+				if(this.balls[i].x+this.balls[i].radius > this.stage.width || this.balls[i].x-this.balls[i].radius < 0){
+					
+					this.balls[i].angle = 180-this.balls[i].angle;
+					//this.balls[i].speed *= 0.85;		//这样更接近现实了，但是可能会停下来
+
+				}
+				if(this.balls[i].y+this.balls[i].radius > this.stage.height || this.balls[i].y-this.balls[i].radius < 0){
+					
+					this.balls[i].angle = -this.balls[i].angle;
+					//this.balls[i].speed *= 0.85;
+				}
+
+			}
+			
+		};
+
+		var manyBall = new Brownian();
+
+		setInterval(function(){manyBall.move();},30);
+
+	</script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{margin:0;padding:0;}
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="1278px" height="683px"></canvas>
+
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		function addEvent(obj,event,fuc){
+			if(obj.addEventListener){
+				obj.addEventListener(event,fuc);
+				
+			}
+			else if(obj.attachEvent){
+				obj.attachEvent("on"+event,function(event){
+									//使作用域指向obj(事件对象)
+									return fuc.call(obj,event);
+								});
+			}
+		}
+		
+		var Stage = function(){
+			this.self = mycanvas;
+			this.width = this.self.offsetWidth;
+			this.height = this.self.offsetHeight;
+			
+		};
+
+		var Point = function(x,y){
+			this.x = x;
+			this.y = y;
+		};
+
+		Stage.prototype.addEvent = function(type,fuc){
+			addEvent(this.self,type,fuc);
+		};
+		
+		//定义一个球的类
+		var Ball = function(context,x,y,radius,color){
+			if(!radius) radius = 20;
+			if(!color) color = "red";
+			if(!context) context = ctx;
+			if(!x) x = mycanvas.offsetWidth/2;
+			if(!y) y = mycanvas.offsetHeight/2;
+
+			this.context = context;
+			this.x = x;
+			this.y = y;
+			this.radius = radius;
+			this.color = color;
+			this.stage = new Stage();
+
+			this.vx = 0;			
+			this.vy = 0;
+
+			//物体的质量，为了动量守恒
+			this.mass = 1;
+
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.fillStyle = this.color;
+			this.context.beginPath();
+
+			this.context.moveTo(200,0);
+			this.context.lineTo(200,600);
+			this.context.moveTo(0,300);
+			this.context.lineTo(800,300);
+			this.context.stroke();
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.strokeRect(this.x-this.radius,this.y-this.radius,2*this.radius,2*this.radius);
+			this.context.fill();
+		};
+
+		Ball.prototype.hitTestObject = function(ob){
+			return ((this.x-ob.x)*(this.x-ob.x)+(this.y-ob.y)*(this.y-ob.y))<
+					(this.radius+ob.radius)*(this.radius+ob.radius);
+		};
+
+		Ball.prototype.checkCollision = function(ob){
+			var dx = ob.x-this.x;
+			var dy = ob.y-this.y;
+			//var dist = Math.sqrt(dx*dx+dy*dy);
+			if(this.hitTestObject(ob)){
+				//alert(11);
+				
+				//计算角、正弦和余弦
+				var angle = Math.atan2(dy,dx);
+				var sin = Math.sin(angle);
+				var cos = Math.cos(angle);
+
+				//旋转ball0的位置
+				var x0 = 0;
+				var y0 = 0;
+
+				//旋转ball1的位置
+				var x1 = dx*cos+dy*sin;
+				var y1 = dy*cos-dx*cos;
+
+				//旋转ball0的速度
+				var vx0 = this.vx*cos+this.vy*sin;
+				var vy0 = this.vy*cos-this.vx*sin;
+
+				//旋转ball1的速度
+				var vx1 = ob.vx*cos+ob.vy*sin;
+				var vy1 = ob.vy*cos-ob.vx*sin;
+
+				//碰撞反应
+				var vxTotal = vx0 - vx1;
+				vx0 = ((this.mass-ob.mass)*vx0+2*ob.mass*vx1)/(this.mass+ob.mass);
+				vx1 = vxTotal+vx0;
+				x0 += vx0;
+				x1 += vx1;
+
+				//将位置旋转回去
+				var x0Final = x0*cos-y0*sin;
+				var y0Final = y0*cos+x0*sin;
+				var x1Final = x1*cos-y1*sin;
+				var y1Final = y1*cos+x1*sin;
+
+				//将位置调整到实际的屏幕位置
+				ob.x = this.x+x1Final;
+				ob.y = this.y+y1Final;
+				this.x = this.x+x0Final;
+				this.y = this.y+y0Final;
+
+				//将速度旋转回去
+				this.vx = vx0*cos-vy0*sin;
+				this.vy = vy0*cos+vx0*sin;
+				ob.vx = vx1*cos-vy1*sin;
+				ob.vy = vy1*cos+vx1*sin;
+			}
+		};
+
+		var CheckTouch = function(){
+			this.balls = [];
+			this.num = 2;
+			this.context = ctx;
+			this.stage = new Stage();
+
+			this.init();
+		};
+
+		CheckTouch.prototype.init = function(){
+			for(var i=0;i<this.num;i++){
+				var vx = 10*Math.random()-5;			
+				var vy = 10*Math.random()-5;
+				var radius = 35*Math.random()+10;
+				var x = (this.stage.width-2*radius)*Math.random()+radius;
+				var y = (this.stage.height-2*radius)*Math.random()+radius;
+				
+
+				var ball = new Ball("",x,y,radius);
+
+				ball.mass = ball.radius/10;
+
+				ball.vx = vx;
+				ball.vy = vy;
+
+				this.balls.push(ball);
+				
+			}
+		};
+
+		CheckTouch.prototype.move = function(){
+			this.context.clearRect(0,0,this.stage.width,this.stage.height);
+			
+			for(var i=0;i<this.num;i++){			
+				
+				if(this.balls[i].y+this.balls[i].radius > this.stage.height || this.balls[i].y - this.balls[i].radius < 0){
+					this.balls[i].vy *= -1;
+				}
+				if(this.balls[i].x+this.balls[i].radius > this.stage.width || this.balls[i].x - this.balls[i].radius < 0){
+					this.balls[i].vx *= -1;
+				}
+
+				this.balls[i].x += this.balls[i].vx;
+				this.balls[i].y += this.balls[i].vy;
+
+
+				this.balls[i].init();
+			}
+			//if(this.balls[1].hitTestObject(this.balls[0])){
+			//	alert("撞到了");
+			//}
+			this.balls[1].checkCollision(this.balls[0]);
+			
+		};
+
+		//CheckTouch.prototype.hitTestObject = function(ob){
+			
+		//};
+
+		var balls = new CheckTouch();
+
+		
+		setInterval(function(){balls.move();},33);	
+
+	</script>
+</body>
+</html>

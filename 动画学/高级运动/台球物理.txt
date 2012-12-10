@@ -33,3 +33,19 @@
 3.2.两个轴上的动量守恒
 
 	当在两个轴上用动量守恒时，你会发现一个问题，速度的方向不是成180度的，而是偏离了一个角度，这个时候我们要回过头来想想坐标转换，把它旋转一个角度试试
+
+
+实例  https://github.com/boia/html5/blob/animation/动画学/高级运动/二维碰撞.html
+
+
+公式
+	动量守恒，直接的数学方式
+
+	v0Final = ((m0-m1)*v0+2*m1*v1)/(m0+m1)
+	v1Final = ((m1-m0)*v1+2*m0*v0)/(m0+m1)
+
+HTML5中的动量守恒，简化
+
+	var vxTotal = ball0.vx-ball1.vx;
+	ball0.vx=((ball0.mass-ball1.mass)*ball0.vx+2*ball1.mass*ball1.vx)/(ball0.mass+ball1.mass);
+	ball.vx = vxTotal+ball0.vx;

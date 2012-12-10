@@ -1,0 +1,128 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{margin:0;padding:0;}
+		canvas{border:1px solid red;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="1278px" height="683px"></canvas>
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		//矩形8个点
+		var rectangle = [
+			{x:-100,y:100,z:100},
+			{x:100,y:100,z:100},
+			{x:-100,y:-100,z:100},
+			{x:100,y:-100,z:100},
+			{x:-100,y:100,z:-100},
+			{x:100,y:100,z:-100},
+			{x:-100,y:-100,z:-100},
+			{x:100,y:-100,z:-100}
+		];
+		
+		//这个数组变量是为了保存投影的坐标，
+		//防止把旋转和投影坐标放在一起，相互影响
+		//这样就会错了
+		var point = [{x:0,y:0},
+					 {x:0,y:0},
+					 {x:0,y:0},
+					 {x:0,y:0},
+					 {x:0,y:0},
+					 {x:0,y:0},
+					 {x:0,y:0},
+					 {x:0,y:0}];
+
+		
+		//摄像头和屏幕的距离
+		var cameraZ = 600;
+
+		//摄像头坐标，现在摄像头和正方体在同一个坐标系中
+		var cameraPoint = {x:0,y:0,z:800};
+
+		//每帧旋转的角度
+		//var angle = 0;
+		//var speed = 5;
+		var cos = Math.cos(2*Math.PI/180);
+		var sin = Math.sin(2*Math.PI/180);
+
+		function perspective(){
+			
+			for(var i=0;i<8;i++){
+				//因为在旋转过程中，物体在z轴上的坐标是改变的
+				var scale = cameraZ/Math.abs(cameraPoint.z-rectangle[i].z);	
+				point[i].x = scale*rectangle[i].x;
+				point[i].y = scale*rectangle[i].y;	
+			}
+		}
+		
+		//每次减小摄像头距离
+		//var speedZ = 50;
+		function drawScreen(){
+			var scale1 = cameraZ/Math.abs(cameraPoint.z-150);
+		    var scale2 = cameraZ/Math.abs(cameraPoint.z+150);
+			//perspective();
+			ctx.translate(350, 250);
+			ctx.beginPath();
+			ctx.strokeStyle = "#"+parseInt(255*Math.random())+parseInt(255*Math.random())+parseInt(255*Math.random());
+			perspective();
+			ctx.moveTo(point[0].x,point[0].y);
+			ctx.lineTo(point[1].x,point[1].y);
+			ctx.lineTo(point[3].x,point[3].y);
+			ctx.lineTo(point[2].x,point[2].y);
+			ctx.lineTo(point[0].x,point[0].y);
+			ctx.lineTo(point[4].x,point[4].y);
+			ctx.lineTo(point[5].x,point[5].y);
+			ctx.lineTo(point[7].x,point[7].y);
+			ctx.lineTo(point[6].x,point[6].y);
+			ctx.lineTo(point[4].x,point[4].y);
+			ctx.moveTo(point[1].x,point[1].y);
+			ctx.lineTo(point[5].x,point[5].y);
+			ctx.moveTo(point[2].x,point[2].y);
+			ctx.lineTo(point[6].x,point[6].y);
+			ctx.moveTo(point[3].x,point[3].y);
+			ctx.lineTo(point[7].x,point[7].y);
+
+			ctx.stroke();
+			ctx.translate(-350, -250);
+		}
+		
+
+		function changeCamera(){
+			ctx.clearRect(0,0,1280,675);
+			
+
+
+			//屏幕和摄像机的距离移动
+			//cameraZ -= speedZ;
+			//if(cameraZ<250 || cameraZ>1500){
+			//	speedZ *= -1;
+			//}
+
+			//沿着z轴旋转
+			for(var i=0;i<8;i++){
+				var x = rectangle[i].x;
+				var y = rectangle[i].y;
+				rectangle[i].x = x*cos-y*sin;
+				rectangle[i].y = x*sin+y*cos;	
+			}
+			
+			//沿着y轴旋转
+			for(var i=0;i<8;i++){
+				var x = rectangle[i].x;
+				var z = rectangle[i].z;
+				rectangle[i].x = x*cos-z*sin;
+				rectangle[i].z = x*sin+z*cos;	
+			}
+
+			drawScreen();
+		};
+//changeCamera();
+		setInterval(function(){changeCamera()},33);
+	</script>
+</body>
+</html>

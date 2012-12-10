@@ -1,0 +1,61 @@
+
+1.布朗运动
+
+	布朗运动在今天可以解释为是水中的大量水分子不停地运动，即使水面表现出来的是平静的。水分子会与花粉颗粒发生碰撞，并传递动量。即使一个灰尘比一个水分子重100万倍，每次碰撞并不能产生多大效果。但是当你每秒钟有几百万次的碰撞时，效果就可观了
+
+2.随机分布
+
+	创建许多物体并且将它们放置在随机的位置上
+
+2.1.方形分布
+
+	如果想让物体随机分布在整个舞台上，是很简单的。只需要选取一个最大值可达舞台的宽的随机数x，选取最大值可达舞台的高的随机数y，以前我们都是这么做的
+	ball.x = Math.random()*stage.width;
+	ball.y = Math.random()*stage.height;
+
+	如果你想分布在某一区域里比如分布在上下左右距离中心100像素的区域里
+	
+	ball.x = stage.width/2+Math.random()*200-100;
+	ball.y = stage.height/2+Math.random()*200-100;
+
+2.2.原型分布
+
+	比方形稍微复杂了点，但也不难，设一个最大半径 maxRadius
+	var radius = Math.random()*maxRadius;
+	var angle = Math.random()*(Math.PI*2);
+	ball.x = stage.width/2+radius*Math.cos(angle);
+	ball.y = stage.height/2+radius*Math.sin(angle);
+	
+	你发现点会更愿意集中在中心，因为中心位置的空间比较小，所以看上去比较挤
+	
+	var radius = Math.sqrt(Math.random())*maxRadius;
+	var angle = Math.random()*(Math.PI*2);
+	ball.x = stage.width/2+radius*Math.cos(angle);
+	ball.y = stage.height/2+radius*Math.sin(angle);
+	随着对随机数开平方，这样就会得到一个更接近于1而远离0的偏移值，这样刚好能光滑分布
+
+2.3.偏移分布
+
+	现在，你想给这些随机的物体一些自由的范围，而且想让它们显示在中心区域，你需要找到一些边界，但是越接近中心，点的数量越多。类似于第一个圆，但是是矩形
+
+	var x1 = Math.random()*stage.width;
+	var x2 = Math.random()*stage.width;
+	ball.x = (x1+x2)/2;
+	ball.y = stage.height/2+Math*random()*100-50;
+	这儿的效果并不是太好，但是你可以看出有许多点聚集在中心位置，而边缘则留有更多的空间，创建更多的随机数然后去平均值可以使效果更好
+
+	for(var i=0;i<num;i++){
+		sum += Math.random()*stage.width;
+	}
+	ball.x = (sum)/num;
+	ball.y = stage.height/2+Math*random()*100-50;
+
+	现在如果对y轴做同样的事情，就可以得到二次偏移分布。
+
+3.基于定时器和时间的动画
+
+	在JS中只有基于定时器的动画
+
+4.声音集成
+
+	在网页上有许多免费的音效，一个最受欢迎的音效网站是FlashKit，还有一个音效库www.flashkit.com/soundfx
