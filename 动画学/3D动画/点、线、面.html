@@ -1,0 +1,224 @@
+<!doctype html5>
+<html>
+<head>
+	<meta charset=gbk>
+	<style>
+		*{margin:0;padding:0;}
+		canvas{background:black;}
+	</style>
+</head>
+<body>
+	<canvas id="mycanvas" width="1280px" height="685px"></canvas>
+	<script>
+		var mycanvas = document.getElementById("mycanvas");
+		var ctx = mycanvas.getContext("2d");
+
+		var Stage = function(){
+			this.self = mycanvas;
+			this.width = this.self.offsetWidth;
+			this.height = this.self.offsetHeight;
+		};
+
+		var Ball = function(x,y,z,radius,color,alpha){
+			this.stage = new Stage();
+
+			if(!x){x=this.stage.width/2;}
+			if(!y){y=this.stage.height/2;}
+			if(!radius){radius=30;}
+			if(!color){color="black";}
+			if(!alpha){alpha=1.0;}
+			
+			this.context = ctx;
+
+			this.color = color;
+			this.alpha = alpha;
+			this.x = x;
+			this.y = y;
+			this.z = z;
+			this.radius = radius;
+
+			//投影比例
+			this.scale;
+			
+			this.style(this.color,this.alpha);
+			
+		};
+
+		Ball.prototype.style = function(color,alpha){
+			if(!color){color="red";}
+			if(!alpha){alpha=1.0;}
+
+			this.color = color;
+			this.alpha = alpha;
+			this.context.globalAlpha = this.alpha;
+			this.context.fillStyle = this.color;
+			
+			this.init();
+		};
+
+		Ball.prototype.init = function(){
+			this.context.beginPath();
+			this.context.arc(this.x,this.y,this.radius,0,2*Math.PI);
+			this.context.fill();
+		};
+		
+		//创建一个投影的类
+		var Projective = function(){
+			this.stage = new Stage();
+			
+			this.dots = [];
+			this.dotsNum = 50;
+
+			//摄像机坐标,z坐标向里为正,同物体的坐标系
+			this.camera = [0,0,-250];
+			
+			//this.point();
+			//this.line();
+		};
+
+		//创建点的投影
+		Projective.prototype.point = function(){
+			//ctx.translate(this.stage.width/2,this.stage.height/2);
+			for(var i=0;i<this.dotsNum;i++){
+				var x = 800*Math.random()-400;
+				var y = 600*Math.random()-300;
+				var z = 800*Math.random();
+				var scale = this.camera[2]/(this.camera[2]-z);
+
+				var alpha = scale;
+				var radius = 2*scale+1;
+
+				var dot = new Ball(x*scale,y*scale,z,radius,"white",alpha);
+				dot.scale = scale;
+				this.dots.push(dot);
+			}			
+		};
+	
+		//创建线的投影
+		Projective.prototype.line = function(){
+			//ctx.beginPath();
+			//ctx.moveTo(this.dots[0].x,this.dots[0].y);
+			ctx.strokeStyle = "white";
+			for(var i=0;i<this.dotsNum-1;i++){
+				ctx.beginPath();
+
+				//创建线性渐变
+				//var gradient = ctx.createLinearGradient(this.dots[i].x,this.dots[i].y,this.dots[i+1].x,this.dots[i+1].y);
+				//var alpha = this.dots[i].scale;
+				//gradient.addColorStop(0,"rgba(255,255,255,"+0.01+")");
+				//gradient.addColorStop(1,"rgba(255,255,255,"+0.9+")");
+				//ctx.strokeStyle = gradient;
+
+				//设置线宽
+				ctx.lineWidth = this.dots[i].scale*2;
+				//设置透明度
+				ctx.globalAlpha = this.dots[i].scale;
+				
+				ctx.moveTo(this.dots[i].x,this.dots[i].y);
+				ctx.lineTo(this.dots[i+1].x,this.dots[i+1].y);
+
+				ctx.stroke();
+			}
+			//ctx.stroke();
+		};
+
+		//创建面的投影
+		var Rect3D = function(){
+			this.stage = new Stage();
+			
+			this.points = [];
+
+			this.angle = 5;
+			this.cos = Math.cos(this.angle*Math.PI/180);
+			this.sin = Math.sin(this.angle*Math.PI/180);
+			
+			//物体在屏幕上的坐标
+			this.viewPoints = [];
+			this.camera = [0,0,-250];
+			this.init();
+		};
+
+		Rect3D.prototype.init = function(){
+			this.points[0] = new Ball(-100,100,100,0);
+			this.points[1] = new Ball(100,100,100,0);
+			this.points[2] = new Ball(-100,-100,100,0);
+			this.points[3] = new Ball(100,-100,100,0);
+
+			//给视口坐标初始化
+			for(var i=0;i<4;i++){
+				
+				this.viewPoints[i] = {x:0,y:0};
+			}
+		};
+
+		Rect3D.prototype.projective = function(){
+			ctx.clearRect(0,0,this.stage.width,this.stage.height);
+
+			for(var i=0;i<this.points.length;i++){
+				this.points[i].scale = this.camera[2]/(this.camera[2]-this.points[i].z);
+				
+				this.viewPoints[i].x = this.points[i].scale*this.points[i].x;
+				this.viewPoints[i].y = this.points[i].scale*this.points[i].y;
+			}
+			ctx.translate(this.stage.width/2,this.stage.height/2);
+	
+			
+			
+			ctx.beginPath();
+			ctx.strokeStyle = "white";
+			ctx.fillStyle  = "green";
+
+			ctx.moveTo(this.viewPoints[0].x,this.viewPoints[0].y);
+			ctx.lineTo(this.viewPoints[1].x,this.viewPoints[1].y);
+			ctx.lineTo(this.viewPoints[3].x,this.viewPoints[3].y);
+			ctx.lineTo(this.viewPoints[2].x,this.viewPoints[2].y);
+
+			ctx.closePath();
+			
+			ctx.stroke();
+			ctx.fill();
+
+			ctx.translate(-this.stage.width/2,-this.stage.height/2);
+
+		};
+
+		Rect3D.prototype.rotate = function(){
+			//饶z轴旋转
+			/*for(var i=0;i<this.points.length;i++){
+				var xpos = this.points[i].x;
+				var ypos = this.points[i].y;
+				this.points[i].x = this.cos*xpos-this.sin*ypos;
+				this.points[i].y = this.cos*ypos+this.sin*xpos;		
+			}*/
+			
+			//饶x轴旋转
+			/*for(var i=0;i<this.points.length;i++){
+				var ypos = this.points[i].y;
+				var zpos = this.points[i].z;
+				
+				this.points[i].y = this.cos*ypos-this.sin*zpos;
+				this.points[i].z = this.cos*zpos+this.sin*ypos;		
+			}*/
+
+			//饶y轴旋转
+			for(var i=0;i<this.points.length;i++){
+				var xpos = this.points[i].x;
+				var zpos = this.points[i].z;
+				
+				this.points[i].x = this.cos*xpos-this.sin*zpos;
+				this.points[i].z = this.cos*zpos+this.sin*xpos;		
+			}
+
+
+			this.projective();
+		};
+
+		//var ball = new Ball(100,100,20,30,"blue",0.5);
+		var rect3D = new Rect3D();
+		//rect3D.projective();
+
+		setInterval(function(){rect3D.rotate();},33);
+
+	</script>
+</body>
+</html>

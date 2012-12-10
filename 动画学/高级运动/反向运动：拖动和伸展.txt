@@ -1,0 +1,12 @@
+公式:
+
+	余弦定理:
+
+	a^2 = b^2+c^2-2*b*c*cosA
+	b^2 = a^2+c^2-2*a*c*cosB
+	c^2 = b^2+a^2-2*b*a*cosC
+
+	Html5余弦定理
+	A = Math.acos((b*b+c*c-a*a)/(2*b*c))
+	B = Math.acos((a*a+c*c-b*b)/(2*a*c))
+	C = Math.acos((a*a+b*b-c*c)/(2*b*a))
